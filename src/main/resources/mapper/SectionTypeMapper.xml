@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.office.yancao.mapper.SectionTypeMapper">
+    
+    <resultMap id="BaseResultMap" type="com.office.yancao.entity.SectionType">
+        <id column="id" property="id" />
+        <result column="section_name" property="sectionName" />
+        <result column="type" property="type" />
+    </resultMap>
+    
+    <select id="selectBySectionName" resultMap="BaseResultMap" parameterType="java.lang.String">
+        SELECT id, section_name, type
+        FROM section_type
+        WHERE section_name = #{sectionName}
+    </select>
+</mapper>

@@ -52,7 +52,7 @@ public class UserService {
 
         // 3. 生成 JWT token
         String token = jwtUtil.generateToken(dbUser.getId().toString());
-        System.out.println(token);
+
 
         // 4. 构造返回数据
         result.put("code", 200);
@@ -182,5 +182,9 @@ public class UserService {
     private boolean verifyPassword(String rawPassword, String encodedPassword) {
         return rawPassword.equals(encodedPassword); // ❌ 仅测试用
         // ✅ 正确做法：return BCrypt.checkpw(rawPassword, encodedPassword);
+    }
+
+    public List<User> listUsers() {
+        return userMapper.listUsers();
     }
 }

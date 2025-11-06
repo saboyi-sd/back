@@ -55,7 +55,7 @@
             status = 'progress'
         WHERE
             id = #{id}
-          AND status = 'reported'
+          AND status = 'acknowledged'
     </update>
 
     <!-- 更新为已修复状态 -->
@@ -63,10 +63,22 @@
         UPDATE fault_reports
         SET
             repair_time = NOW(),
-            status = 'repaired'
+            status = 'repaired',
+            duration_minutes = #{durationMinutes}
+            repair_notes = #{repairNotes}
         WHERE
             id = #{id}
           AND status = 'progress'
+    </update>
+
+    <update id="updateToGet">
+        UPDATE fault_reports
+        SET
+            query_time = NOW(),
+            status = 'acknowledged'
+        WHERE
+            id = #{id}
+          AND status = 'reported'
     </update>
 
     <!-- 分页查询所有 -->

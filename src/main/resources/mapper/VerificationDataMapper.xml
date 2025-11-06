@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.office.yancao.mapper.VerificationDataMapper">
+
+    <resultMap id="BaseResultMap" type="com.office.yancao.entity.VerificationData">
+        <id column="id" property="id"/>
+        <result column="batch_id" property="batchId"/>
+        <result column="brand" property="brand"/>
+        <result column="segment" property="segment"/>
+        <result column="verification_result" property="verificationResult" typeHandler="com.office.yancao.untils.JsonMapTypeHandler"/>
+        <result column="data_count" property="dataCount"/>
+        <result column="operator_id" property="operatorId"/>
+        <result column="verified_time" property="verifiedTime"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.office.yancao.entity.VerificationData">
+        INSERT INTO verification_data (
+            batch_id, brand, segment, verification_result,
+            data_count, operator_id, verified_time
+        ) VALUES (
+                     #{batchId}, #{brand}, #{segment}, #{verificationResult, typeHandler=com.office.yancao.untils.JsonMapTypeHandler},
+                     #{dataCount}, #{operatorId}, #{verifiedTime}
+                 )
+    </insert>
+
+    <select id="selectOneByBatchIdAndSegment"
+            parameterType="map"
+            resultMap="BaseResultMap">
+        SELECT
+            *
+        FROM verification_data
+        WHERE batch_id = #{batchId}
+          AND segment = #{segment}
+            LIMIT 1
+    </select>
+
+</mapper>

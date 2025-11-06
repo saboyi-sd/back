@@ -36,7 +36,6 @@ public class WorkService {
 
     public boolean saveWork(WorkDTO workDTO) {
         // ✅ 处理图片上传并转换为字符串路径
-        String imagePaths = handleImageUpload(workDTO.getImages());
 
         // ✅ 创建实体对象
         Work work = new Work();
@@ -48,13 +47,21 @@ public class WorkService {
         work.setBatchNo(workDTO.getBatchNo());
         work.setYield(workDTO.getYield());
         work.setRemark(workDTO.getRemark());
-        work.setImages(imagePaths); // ✅ 设置图片路径字符串
         work.setCreateTime(LocalDateTime.now());
-        if (!(imagePaths == null) || !(work.getRemark() == null)){
+        List<String> images = workDTO.getImages();
+        String imageStr = null;
+
+        if (images != null && !images.isEmpty()) {
+            imageStr = String.join(",", images);
+        }
+
+        work.setImages(imageStr);
+        if (!(images == null) || !(work.getRemark() == null)){
             work.setIsRemark("1");
         }else {
             work.setIsRemark("0");
         }
+        System.out.println(workDTO.getUserId());
         // ✅ 保存到数据库
         return workMapper.saveWork(work) > 0;
     }
@@ -71,57 +78,6 @@ public class WorkService {
         return workMapper.listWorksByUserId(userId);
     }
 
-    /**
-     * 处理图片上传，将 MultipartFile[] 转换为图片路径字符串
-     */
-    private String handleImageUpload(MultipartFile[] images) {
-        if (images == null || images.length == 0) {
-            return null; // 或者返回空字符串 ""
-        }
-
-        StringBuilder imagePaths = new StringBuilder();
-
-        try {
-            // ✅ 确保上传目录存在
-            File dir = new File(uploadPath);
-            if (!dir.exists()) {
-                dir.mkdirs();
-            }
-
-            for (int i = 0; i < images.length; i++) {
-                MultipartFile image = images[i];
-                if (image != null && !image.isEmpty()) {
-                    // ✅ 生成唯一文件名
-                    String originalFilename = image.getOriginalFilename();
-                    String uniqueFileName = UUID.randomUUID().toString() + "_" + originalFilename;
-
-                    // ✅ 构建文件路径
-                    Path path = Paths.get(uploadPath + uniqueFileName);
-
-                    // ✅ 保存文件
-                    Files.copy(image.getInputStream(), path);
-
-                    // ✅ 构建访问URL
-                    String imageUrl = baseUrl + uniqueFileName;
-
-                    // ✅ 添加到路径字符串（用逗号分隔）
-                    if (i > 0) {
-                        imagePaths.append(",");
-                    }
-                    imagePaths.append(imageUrl);
-                }
-            }
-
-        } catch (IOException e) {
-            // ✅ 记录错误日志
-            System.err.println("图片上传失败: " + e.getMessage());
-            e.printStackTrace();
-            // 这里可以考虑抛出业务异常或返回null
-            return null;
-        }
-
-        return imagePaths.length() > 0 ? imagePaths.toString() : null;
-    }
 
     public Map<String, Object> getTodayWorkOrdersByUserId(Integer userId) {
         Map<String, Object> result = new HashMap<>();

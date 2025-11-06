@@ -5,10 +5,8 @@ package com.office.yancao.controller;
 import com.office.yancao.dto.NoticeDTO;
 import com.office.yancao.dto.NoticeReqDTO;
 import com.office.yancao.dto.NoticeRespDto;
-import com.office.yancao.entity.Department;
-import com.office.yancao.entity.Notice;
-import com.office.yancao.entity.ReadStats;
-import com.office.yancao.entity.User;
+import com.office.yancao.dto.UpdatePromotionRequest;
+import com.office.yancao.entity.*;
 import com.office.yancao.service.NoticeService;
 import com.office.yancao.untils.Result;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,9 +26,9 @@ public class NoticeController {
     private NoticeService noticeService;
 
 
-    @PostMapping(value = "/publish", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public Result<Void> publish(NoticeDTO dto) throws IOException {
-        //System.out.println(dto.getImages().length);
+    @PostMapping("/publish")
+    public Result<Void> publish(@RequestBody NoticeDTO dto) throws IOException {
+        System.out.println(dto.getImages().size());
         noticeService.publishNotice(dto);
         return Result.success();
     }
@@ -40,15 +38,9 @@ public class NoticeController {
         return Result.success(noticeService.listDepartments(id));
     }
 
-    @GetMapping("/users")
-    public Result<List<User>> listUsers() {
-        return Result.success(noticeService.listUsers());
-    }
-
     @GetMapping("/list")
-    public Result<List<NoticeRespDto>> listNotices(@RequestParam(value = "userId") Long userId, @RequestParam(value = "startTime") String startTime,
-                                                   @RequestParam(value = "endTime") String endTime) {
-        return Result.success(noticeService.listNoticesForUser(userId, startTime, endTime));
+    public Result<List<NoticeRespDto>> listNotices(@RequestParam(value = "userId") Long userId) {
+        return Result.success(noticeService.listNoticesForUser(userId));
     }
 
     @GetMapping("/stats/{id}")
@@ -70,5 +62,43 @@ public class NoticeController {
     @GetMapping("/unreadUsers")
     public Result<Map<String, Object>> getUnreadUsers(@RequestParam Long noticeId) {
         return Result.success(noticeService.getUnreadUsers(noticeId));
+    }
+
+    @GetMapping("/promotion/list")
+    public Result<List<Article>> listPromotion() {
+        return Result.success(noticeService.listPromotion());
+    }
+
+    @PutMapping("/updatePromotion")
+    public Result<Void> updatePromotion(@RequestBody UpdatePromotionRequest request) throws IOException {
+        noticeService.updatePromotion(request.getArticleId(), request.getIsBanner());
+        return Result.success();
+    }
+
+
+    /**
+     * 保存内容
+     */
+    @PostMapping("/save")
+    public Result<Long> saveContent(@RequestBody Article article) {
+        try {
+            int contentId = noticeService.saveArticle(article);
+            return Result.success(Integer.toUnsignedLong(contentId));
+        } catch (Exception e) {
+            return Result.fail(e.getMessage());
+        }
+    }
+
+    //获取轮播图接口
+    @GetMapping("/getArticleBanner")
+    public Result<List<Article>> getArticleBanner() {
+        return Result.success(noticeService.getArticleBanner());
+    }
+
+    //获取轮播图接口
+    @GetMapping("/getArticleDetail")
+    public Result<Article> getArticleDetail(@RequestParam("id") Long id) {
+        System.out.println(id);
+        return Result.success(noticeService.getArticleDetail(id));
     }
 }

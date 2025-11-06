@@ -3,7 +3,7 @@
 <mapper namespace="com.office.yancao.mapper.UserDepartmentMapper">
 
 
-    <select id="selectDepartmentId" resultType="com.office.yancao.entity.UserDepartment">
+    <select id="selectDepartmentId" resultType="com.office.yancao.entity.GroupUser">
         SELECT *
         FROM user_department
         WHERE user_id = #{userId}

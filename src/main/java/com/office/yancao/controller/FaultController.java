@@ -5,7 +5,8 @@ package com.office.yancao.controller;
 
 import com.office.yancao.dto.FaultReportDTO;
 import com.office.yancao.dto.FaultRespList;
-import com.office.yancao.entity.FaultReport;
+
+import com.office.yancao.dto.FaultUpDto;
 import com.office.yancao.service.FaultService;
 import com.office.yancao.untils.Result;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,24 +29,11 @@ public class FaultController {
      * 提交报警（支持图片上传）
      */
     @PostMapping("/report")
-    public Result<Long> reportFault(
-            @RequestParam Long reporterId,
-            @RequestParam String line,
-            @RequestParam String section,
-            @RequestParam String type,
-            @RequestParam String description,
-            @RequestParam(value = "images", required = false) MultipartFile[] images) {
+    public Result<Long> reportFault(@RequestBody FaultReportDTO faultReportDTO) {
 
         try {
-            FaultReportDTO dto = new FaultReportDTO();
-            dto.setReporterId(reporterId);
-            dto.setSection(section);
-            dto.setLine(line);
-            dto.setType(type);
-            dto.setDescription(description);
 
-            List<MultipartFile> imageList = (images != null) ? Arrays.asList(images) : null;
-            Long faultId = faultService.createFaultReport(dto, imageList);
+            Long faultId = faultService.createFaultReport(faultReportDTO);
 
             return Result.success(faultId); // ✅ 返回成功 + 数据
 
@@ -58,11 +46,9 @@ public class FaultController {
      * 维修工到场
      */
     @PostMapping("/repair")
-    public Result<Boolean> markAsArrived(@RequestParam Long id,
-                                         @RequestParam String status,
-                                         @RequestParam(required = false) MultipartFile[] images) throws IOException {
-        List<MultipartFile> imageList = (images != null) ? Arrays.asList(images) : null;
-        boolean success = faultService.markAsArrived(id, status, imageList);
+    public Result<Boolean> markAsArrived(@RequestBody FaultUpDto faultUpDto) throws IOException {
+
+        boolean success = faultService.markAsArrived(faultUpDto);
         if (success) {
             return Result.success(true); // ✅ 成功
         } else {

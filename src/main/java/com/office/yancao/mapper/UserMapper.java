@@ -4,6 +4,8 @@ import com.office.yancao.entity.User;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
 @Mapper
 public interface UserMapper {
     User getUsersById(@Param("userId") Long userId);
@@ -26,4 +28,6 @@ public interface UserMapper {
      * 根据用户ID查询用户所在班级
      */
     String getUserClassById(@Param("userId") Integer userId);
+
+    List<User> listUsers();
 }

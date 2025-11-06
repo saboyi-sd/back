@@ -12,7 +12,14 @@
     <!--  插入用户部门关联关系  -->
     <insert id="insertUserDepartment"> INSERT INTO user_department ( user_id, department_id ) VALUES ( #{userId}, #{departmentId} ) </insert>
     <!--  根据用户ID查询用户所在班级  -->
-    <select id="getUserClassById" resultType="java.lang.String"> SELECT classes FROM user_info WHERE id = #{userId} </select>
+    <select id="getUserClassById" resultType="java.lang.String">
+        SELECT classes FROM user_info WHERE id = #{userId}
+    </select>
 
+    <select id="listUsers" resultType="com.office.yancao.entity.User">
+        SELECT id, username, phone, position, role
+        FROM user_info
+        WHERE role = 'USER'
+    </select>
 
 </mapper>

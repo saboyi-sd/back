@@ -22,8 +22,8 @@ public class WorkController {
     /**
      * 保存工单
      */
-    @PostMapping(value ="/save", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public Result<String> saveWork(WorkDTO work) {
+    @PostMapping("/save")
+    public Result<String> saveWork(@RequestBody WorkDTO work) {
         boolean success = workService.saveWork(work);
         return success ? Result.success("工单保存成功") : Result.fail("工单保存失败");
     }
@@ -65,4 +65,5 @@ public class WorkController {
         List<Work> workList = workService.listWorksByUserId(userId);
         return Result.success(workList);
     }
+
 }

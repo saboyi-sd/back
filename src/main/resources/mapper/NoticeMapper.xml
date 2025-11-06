@@ -3,8 +3,8 @@
 <mapper namespace="com.office.yancao.mapper.NoticeMapper">
 
     <insert id="insertNotice" parameterType="com.office.yancao.entity.Notice" useGeneratedKeys="true" keyProperty = "id">
-        INSERT INTO notice (title, content, type, created_by, created_at)
-        VALUES (#{title}, #{content}, #{type}, #{createdBy}, NOW())
+        INSERT INTO notice (title, content, type, created_by, created_at, images)
+        VALUES (#{title}, #{content}, #{type}, #{createdBy}, NOW(), #{images})
     </insert>
 
     <insert id="insertReceivers">
@@ -20,17 +20,12 @@
         VALUES (#{noticeId}, #{userId}, #{noticeTime})
     </insert>
 
-    <select id="getUsersByDeptId" resultType="com.office.yancao.entity.UserDepartment">
+    <select id="getUsersByDeptId" resultType="com.office.yancao.entity.GroupUser">
         SELECT *
         FROM user_department
         WHERE department_id = #{departmentId}
     </select>
 
-    <select id="listUsers" resultType="com.office.yancao.entity.User">
-        SELECT id, username, phone, position, role
-        FROM user_info
-        WHERE role = 'USER'
-    </select>
 
     <select id="listDepartments" resultType="com.office.yancao.entity.Department">
         SELECT id, name FROM department ORDER BY name
@@ -38,6 +33,7 @@
 
     <select id="listNoticesForUser" resultType="com.office.yancao.dto.NoticeRespDto">
         SELECT n.id, n.title, n.content, n.created_by AS createdBy, n.created_at AS createdAt,
+               n.is_banner AS isBanner, n.images AS imageUrls,
         COALESCE(nr.is_read, 0) AS isRead
         FROM notice n
         LEFT JOIN notice_receiver nr ON n.id = nr.notice_id
@@ -45,12 +41,6 @@
         AND (
         nr.user_id = #{userId}
         )
-        <if test="startTime != null and startTime != ''">
-            AND nr.notice_time >= #{startTime}
-        </if>
-        <if test="endTime != null and endTime != ''">
-            AND nr.notice_time <![CDATA[ <= ]]> #{endTime}
-        </if>
         ORDER BY n.created_at DESC
     </select>
 
@@ -91,5 +81,43 @@
         WHERE ur.notice_id = #{noticeId}
           AND ur.is_read = 0
         ORDER BY ui.username
+    </select>
+
+
+    <select id="listPromotion" resultType="com.office.yancao.entity.Article">
+        SELECT *
+        FROM article
+    </select>
+
+    <update id="updatePromotion">
+        UPDATE article
+        <!-- 更新 is_banner 字段，值为参数 isBanner -->
+        SET is_banner = #{isBanner}
+        <!-- 条件：通过 notice_id 定位记录，值为参数 noticeId -->
+        WHERE id = #{articleId}
+    </update>
+
+
+
+    <insert id="insertArticle" parameterType="com.office.yancao.entity.Article" useGeneratedKeys="true" keyProperty = "id">
+        INSERT INTO article
+            (title, content, type, text, created_by, create_time, cover_image, image_count)
+        VALUES
+               (#{title}, #{content}, #{type}, #{text}, #{createdBy}, NOW(), #{coverImage}, #{imageCount})
+    </insert>
+
+
+    <select id="getArticleBanner" resultType="com.office.yancao.entity.Article">
+        SELECT *
+        FROM article
+        where is_Banner = 1
+    </select>
+
+
+
+    <select id="getArticleDetail" resultType="com.office.yancao.entity.Article">
+        SELECT *
+        FROM article
+        where id = #{id}
     </select>
 </mapper>

@@ -10,13 +10,8 @@ import com.office.yancao.mapper.UserDepartmentMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -47,31 +42,18 @@ public class NoticeService {
         notice.setCreatedBy(dto.getUsername());
         notice.setCreatedAt(date);
         notice.setIsDeleted(false);
-        noticeMapper.insertNotice(notice);
-        List<MultipartFile> images = new ArrayList<>();
-        if (dto.getImages() != null) {
-            images = Arrays.asList(dto.getImages());
-        } else {
-            images = new ArrayList<>(); // 创建空列表而不是 null
-        }
-        // 2. 保存图片
+        List<String> images = dto.getImages();
+        String imageStr = null;
+
         if (images != null && !images.isEmpty()) {
-            File dir = new File(uploadPath);
-            if (!dir.exists()) dir.mkdirs();
-
-            for (MultipartFile file : images) {
-                if (!file.isEmpty()) {
-                    String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-                    Path path = Paths.get(uploadPath + fileName);
-                    Files.copy(file.getInputStream(), path);
-
-                    FaultImage image = new FaultImage();
-                    image.setNoticeId(notice.getId());
-                    image.setImageUrl(baseUrl + fileName);
-                    faultImageMapper.insertNoticeImage(image);
-                }
-            }
+            imageStr = String.join(",", images);
         }
+
+        notice.setImages(imageStr);
+        noticeMapper.insertNotice(notice);
+
+        System.out.println(dto.getImages());
+
 
 
         NoticeReceiver noticeReceiver = new NoticeReceiver();
@@ -86,16 +68,16 @@ public class NoticeService {
         Set<Long> result = new HashSet<>();
 
         if ("ALL".equals(dto.getType())) {
-            UserDepartment userDepartment = userDepartmentMapper.selectDepartmentId(dto.getUserId());
-            collectChildIds(userDepartment.getDepartmentId(), result);
+            GroupUser groupUser = userDepartmentMapper.selectDepartmentId(dto.getUserId());
+            collectChildIds(groupUser.getGroupId(), result);
             List<Long> userIdsByDeptIds = userDepartmentMapper.getUserIdsByDeptIds(result);
             // List<User> users = noticeMapper.listUsers();
             targetUserIds.addAll(userIdsByDeptIds);
         }
         else if ("DEPT".equals(dto.getType()) && dto.getSelectedDeptIds() != null) {
             for (Long deptId : dto.getSelectedDeptIds()) {
-                List<UserDepartment> userDepartments = noticeMapper.getUsersByDeptId(deptId);
-                targetUserIds.addAll(userDepartments.stream().map(UserDepartment::getUserId).collect(Collectors.toList()));
+                List<GroupUser> groupUsers = noticeMapper.getUsersByDeptId(deptId);
+                targetUserIds.addAll(groupUsers.stream().map(GroupUser::getUserId).collect(Collectors.toList()));
             }
             noticeMapper.insertReceiver(noticeReceiver);
         }
@@ -120,16 +102,13 @@ public class NoticeService {
     }
 
     public List<Department> listDepartments(long id) {
-        UserDepartment userDepartment = userDepartmentMapper.selectDepartmentId(id);
-        return userDepartmentMapper.getDirectChildren(userDepartment.getDepartmentId());
+        GroupUser groupUser = userDepartmentMapper.selectDepartmentId(id);
+        return userDepartmentMapper.getDirectChildren(groupUser.getGroupId());
     }
 
-    public List<User> listUsers() {
-        return noticeMapper.listUsers();
-    }
 
-    public List<NoticeRespDto> listNoticesForUser(Long userId, String startTime, String endTime ) {
-        List<NoticeRespDto> res = noticeMapper.listNoticesForUser(userId, startTime, endTime);
+    public List<NoticeRespDto> listNoticesForUser(Long userId) {
+        List<NoticeRespDto> res = noticeMapper.listNoticesForUser(userId);
         // return noticeMapper.listNoticesForUser(userId, startTime, endTime);
         return res;
     }
@@ -140,8 +119,11 @@ public class NoticeService {
 
     public Notice getNoticeDetail(Long noticeId) {
         Notice noticeDetail = noticeMapper.getNoticeDetail(noticeId);
-        List<String> images = faultImageMapper.findByNoticeId(noticeId);
-        noticeDetail.setImages(images);
+        String imageStr = noticeDetail.getImages();
+        List<String> images = (imageStr == null || imageStr.isEmpty())
+                ? Collections.emptyList()
+                : Arrays.asList(imageStr.split(","));
+        noticeDetail.setImagesUrl(images);
         return noticeDetail;
     }
 
@@ -170,5 +152,38 @@ public class NoticeService {
         for (Long childId : children) {
             collectChildIds(childId, result); // 递归
         }
+    }
+
+    public List<Article> listPromotion() {
+        List<Article> res = noticeMapper.listPromotion();
+        // return noticeMapper.listNoticesForUser(userId, startTime, endTime);
+        return res;
+    }
+
+    public void updatePromotion(Long articleId, Boolean isBanner) {
+        if (isBanner){
+            noticeMapper.updatePromotion(articleId, 1);
+        }else {
+            noticeMapper.updatePromotion(articleId, 0);
+        }
+    }
+
+    public int saveArticle(Article article) {
+        if (!article.getCoverImages().isEmpty()){
+            String image = article.getCoverImages().get(0);
+            System.out.println(image);
+            article.setCoverImage(image);
+        }
+        return noticeMapper.insertArticle(article);
+    }
+
+    public List<Article> getArticleBanner() {
+        List<Article> res = noticeMapper.getArticleBanner();
+        // return noticeMapper.listNoticesForUser(userId, startTime, endTime);
+        return res;
+    }
+
+    public Article getArticleDetail(Long id) {
+        return noticeMapper.getArticleDetail(id);
     }
 }

@@ -14,11 +14,11 @@ public interface NoticeMapper {
     void insertReceivers(@Param("receivers") List<NoticeReceiver> receivers);
     void insertReceiver(NoticeReceiver receiver);
 
-    List<UserDepartment> getUsersByDeptId(@Param("departmentId") Long deptId);
-    List<User> listUsers();
+    List<GroupUser> getUsersByDeptId(@Param("departmentId") Long deptId);
+
     List<Department> listDepartments();
 
-    List<NoticeRespDto> listNoticesForUser(@Param("userId") Long userId, @Param("startTime") String startTime, @Param("endTime") String endTime );
+    List<NoticeRespDto> listNoticesForUser(@Param("userId") Long userId);
     ReadStats getReadStats(@Param("noticeId") Long noticeId);
 
     Notice getNoticeDetail(Long noticeId);
@@ -29,4 +29,14 @@ public interface NoticeMapper {
      * 查询指定公告的所有未读用户信息
      */
     List<UnreadUserDTO> selectUnreadUsersByNoticeId(@Param("noticeId") Long noticeId);
+
+    List<Article> listPromotion();
+
+    void updatePromotion(Long articleId, int isBanner);
+
+    int insertArticle(Article article);
+
+    List<Article> getArticleBanner();
+
+    Article getArticleDetail(Long id);
 }

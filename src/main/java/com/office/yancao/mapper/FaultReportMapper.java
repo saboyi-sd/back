@@ -14,7 +14,11 @@ public interface FaultReportMapper {
 
     int updateToArrived(@Param("id") Long id, @Param("status") String status);
 
-    int updateToRepaired(@Param("id") Long id, @Param("status") String status);
+    int updateToRepaired(@Param("id") Long id, @Param("status") String status,
+                         @Param("durationMinutes") Long durationMinutes,
+                         @Param("repairNotes") String repairNotes);
+
+    int updateToGet(@Param("id") Long id, @Param("status") String status);
 
     List<FaultReport> findAll(@Param("offset") int offset, @Param("limit") int limit);
 

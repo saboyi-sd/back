@@ -3,9 +3,10 @@ package com.office.yancao.entity;
 import lombok.Data;
 
 @Data
-public class UserDepartment {
+public class GroupUser {
     private Integer id;
     private Long userId;
-    private Long departmentId;
+    private Long GroupId;
+    private Long operatorId;
 
 }

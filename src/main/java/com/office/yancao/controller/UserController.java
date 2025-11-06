@@ -3,14 +3,13 @@ package com.office.yancao.controller;
 import com.office.yancao.dto.LoginDTO;
 
 import com.office.yancao.dto.RegisterDTO;
+import com.office.yancao.entity.User;
 import com.office.yancao.service.UserService;
 import com.office.yancao.untils.Result;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -47,6 +46,11 @@ public class UserController {
         } else {
             return Result.fail((int)result.get("code"), (String)result.get("msg"));
         }
+    }
+
+    @GetMapping("/all")
+    public Result<List<User>> listUsers() {
+        return Result.success(userService.listUsers());
     }
 }
 

@@ -4,7 +4,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Date;
-import java.util.List;
 
 @Getter
 @Setter
@@ -14,6 +13,7 @@ public class NoticeRespDto {
     private String content;
     private String createdBy;
     private Date createdAt;
-    private List<String> imageUrls; // 所有初始照片
+    private String imageUrls; // 所有初始照片
     private int isRead;
+    private int isBanner;
 }

@@ -4,6 +4,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 @Getter
 @Setter
 public class WorkDTO {
@@ -18,5 +20,5 @@ public class WorkDTO {
     private String remark;
 
     // ✅ 接收多张图片
-    private MultipartFile[] images; // 或者 List<MultipartFile>
+    private List<String> images;
 }

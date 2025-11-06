@@ -16,5 +16,5 @@ public class NoticeDTO {
     private List<Long> selectedDeptIds;
     private String username;
     private Long userId;
-    private MultipartFile[] images; // 上传图片
+    private List<String> images; // 上传图片
 }

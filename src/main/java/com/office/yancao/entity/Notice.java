@@ -14,5 +14,6 @@ public class Notice {
     private String createdBy;
     private Date createdAt;
     private Boolean isDeleted;
-    private List<String> images;
+    private String images;
+    private List<String> imagesUrl;
 }

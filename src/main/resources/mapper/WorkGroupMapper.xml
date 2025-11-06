@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.office.yancao.mapper.WorkGroupMapper">
+
+    <resultMap id="BaseResultMap" type="com.office.yancao.entity.WorkGroup">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="type" property="type"/>
+        <result column="description" property="description"/>
+        <result column="creator_id" property="creatorId"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- 插入 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO work_group (name, type, description, creator_id, status)
+        VALUES (#{name}, #{type}, #{description}, #{creatorId}, #{status})
+    </insert>
+
+    <!-- 根据ID更新（只更新非空字段） -->
+    <update id="updateById">
+        UPDATE work_group
+        <set>
+            <if test="name != null and name != ''">name = #{name},</if>
+            <if test="type != null and type != ''">type = #{type},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="creatorId != null">creator_id = #{creatorId},</if>
+            <if test="status != null">status = #{status},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 根据ID删除 -->
+    <delete id="deleteById">
+        DELETE FROM work_group WHERE id = #{id}
+    </delete>
+
+    <!-- 根据ID查询 -->
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT * FROM work_group WHERE id = #{id}
+    </select>
+
+    <!-- 查询所有（可根据需要加条件） -->
+
+
+    <select id="getWorkGroupByUserId" resultMap="BaseResultMap">
+        SELECT * FROM work_group
+        where creator_id = #{creatorId}
+        ORDER BY create_time DESC
+    </select>
+
+    <insert id="batchInsert" useGeneratedKeys="false">
+        INSERT INTO user_group (group_id, user_id, operator_id)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.groupId}, #{item.userId}, #{item.operatorId})
+        </foreach>
+    </insert>
+
+
+    <select id="getGroupUserByGroupId" resultType="com.office.yancao.entity.GroupUser">
+        SELECT * FROM user_group
+        where operator_id = #{creatorId} and group_id = #{groupId}
+    </select>
+
+    <delete id="deleteByGroupIdAndUserId">
+        DELETE FROM user_group
+        WHERE group_id = #{groupId} AND user_id = #{userId}
+    </delete>
+
+</mapper>

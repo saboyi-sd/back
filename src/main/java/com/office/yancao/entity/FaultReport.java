@@ -17,6 +17,7 @@ public class FaultReport {
     private LocalDateTime repairTime;
     private Long repairmanId;
     private LocalDateTime createdTime;
-    private String durationMinutes;
+    private Long durationMinutes;
+    private  String repairNotes;
 
 }

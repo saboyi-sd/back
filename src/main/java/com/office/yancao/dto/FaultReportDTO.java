@@ -15,6 +15,8 @@ public class FaultReportDTO {
     private String type;
     private String description;
     private String status;
+    private String repairNotes;
+    private Long durationMinutes;
     private LocalDateTime reportTime;
     private LocalDateTime arrivalTime;
     private LocalDateTime repairTime;

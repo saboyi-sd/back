@@ -50,7 +50,7 @@ public interface WorkMapper {
 
     /**
      * 根据班级查询今日工单
-     * @param classess 班级（甲班/乙班）
+     * @param classes 班级（甲班/乙班）
      * @param startTime 当天开始时间
      * @param endTime 当天结束时间
      * @return 工单列表
@@ -61,7 +61,7 @@ public interface WorkMapper {
 
     /**
      * 获取今日工单总数
-     * @param classess 班级（甲班/乙班）
+     * @param classes 班级（甲班/乙班）
      * @param startTime 当天开始时间
      * @param endTime 当天结束时间
      * @return 工单总数

@@ -3,6 +3,7 @@ package com.office.yancao.service;
 
 import com.office.yancao.dto.FaultReportDTO;
 import com.office.yancao.dto.FaultRespList;
+import com.office.yancao.dto.FaultUpDto;
 import com.office.yancao.entity.FaultImage;
 import com.office.yancao.entity.FaultReport;
 import com.office.yancao.entity.User;
@@ -19,17 +20,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
 public class FaultService {
-
-    @Value("${file.upload-path}")
-    private String uploadPath;
-
-    @Value("${file.base-url}")
-    private String baseUrl;
 
     private final FaultReportMapper faultReportMapper;
     private final FaultImageMapper faultImageMapper;
@@ -42,7 +38,7 @@ public class FaultService {
     }
 
     @Transactional
-    public Long createFaultReport(FaultReportDTO dto, List<MultipartFile> images) throws IOException {
+    public Long createFaultReport(FaultReportDTO dto) throws IOException {
         // 1. 保存故障
         FaultReport fault = new FaultReport();
         fault.setReporterId(dto.getReporterId());
@@ -53,70 +49,57 @@ public class FaultService {
         fault.setStatus("reported");
         fault.setReportTime(LocalDateTime.now());
         fault.setCreatedTime(LocalDateTime.now());
-
-
         faultReportMapper.insert(fault);
 
 
-        // 2. 保存图片
-        if (images != null && !images.isEmpty()) {
-            File dir = new File(uploadPath);
-            if (!dir.exists()) dir.mkdirs();
-
-            for (MultipartFile file : images) {
-                if (!file.isEmpty()) {
-                    String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-                    Path path = Paths.get(uploadPath + fileName);
-                    Files.copy(file.getInputStream(), path);
-
-                    FaultImage image = new FaultImage();
-                    image.setFaultId(fault.getId());
-                    image.setImageUrl(baseUrl + fileName);
-                    image.setImageType("initial");
-                    faultImageMapper.insert(image);
-                }
-            }
+        for (String image : dto.getImageUrls()){
+            FaultImage faultImage = new FaultImage();
+            faultImage.setFaultId(fault.getId());
+            faultImage.setImageUrl(image);
+            faultImage.setImageType("initial");
+            faultImageMapper.insert(faultImage);
         }
 
         return fault.getId();
     }
 
     @Transactional
-    public boolean markAsArrived(Long id, String status, List<MultipartFile> images) throws IOException{
+    public boolean markAsArrived(FaultUpDto faultUpDto) throws IOException{
         boolean one;
-        if ("progress".equals(status)){
-            one = faultReportMapper.updateToArrived(id, status) > 0;
+        if ("progress".equals(faultUpDto.getStatus())){
+            one = faultReportMapper.updateToArrived(faultUpDto.getFaultId(), faultUpDto.getStatus()) > 0;
+        }else if("acknowledged".equals(faultUpDto.getStatus())){
+            one = faultReportMapper.updateToGet(faultUpDto.getFaultId(), faultUpDto.getStatus()) > 0;
         }else {
-            one = faultReportMapper.updateToRepaired(id, status) > 0;
+            FaultReport byId = faultReportMapper.findById(faultUpDto.getFaultId());
+
+            // 确保 arrivalTime 不为 null
+            if (byId.getArrivalTime() == null) {
+                throw new IllegalArgumentException("到达现场时间不能为空");
+            }
+
+            // 计算持续时间（单位：分钟）
+            long durationMinutes = Duration.between(byId.getArrivalTime(), LocalDateTime.now()).toMinutes();
+
+            // 更新状态 + 持续时间（假设你的 updateToRepaired 支持传入 duration）
+             one = faultReportMapper.updateToRepaired(faultUpDto.getFaultId(), faultUpDto.getStatus(), durationMinutes, faultUpDto.getRepairNotes()) > 0;
         }
 
         // 2. 保存图片
+        List<String> images = faultUpDto.getImages();
         if (images != null && !images.isEmpty()) {
-            File dir = new File(uploadPath);
-            if (!dir.exists()) dir.mkdirs();
-
-            for (MultipartFile file : images) {
-                if (!file.isEmpty()) {
-                    String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-                    Path path = Paths.get(uploadPath + fileName);
-                    Files.copy(file.getInputStream(), path);
-
-                    FaultImage image = new FaultImage();
-                    image.setFaultId(id);
-                    image.setImageUrl(baseUrl + fileName);
-                    image.setImageType(status);
-                    faultImageMapper.insertNoticeImage(image);
-                }
+            for (String image : images) {
+                FaultImage faultImage = new FaultImage();
+                faultImage.setFaultId(faultUpDto.getFaultId());
+                faultImage.setImageUrl(image);
+                faultImage.setImageType(faultUpDto.getStatus());
+                faultImageMapper.insert(faultImage);
             }
         }
 
         return one;
     }
 
-//    @Transactional
-//    public boolean markAsRepaired(Long id) {
-//        return faultReportMapper.updateToRepaired(id) > 0;
-//    }
 
     public FaultReportDTO getFaultDetail(Long id) {
         FaultReport fault = faultReportMapper.findById(id);
@@ -134,6 +117,8 @@ public class FaultService {
         dto.setArrivalTime(fault.getArrivalTime());
         dto.setRepairTime(fault.getRepairTime());
         dto.setRepairmanId(fault.getRepairmanId());
+        dto.setDurationMinutes(fault.getDurationMinutes());
+        dto.setRepairNotes(fault.getRepairNotes());
         if (fault.getReporterId() != null) {
             User user = userMapper.getUsersById(fault.getReporterId());
             if (user != null) {
